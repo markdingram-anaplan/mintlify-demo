@@ -1,0 +1,239 @@
+openapi: 3.1.0
+info:
+  title: Authentication API
+  version: '1.0'
+  contact:
+    name: Anaplan
+    url: 'https://www.anaplan.com/'
+    email: api-support@anaplan.com
+  description: |
+    To use the version 2.0 API, you must send requests using an Anaplan authentication (auth) token. This is in the form of a JSON Web Token. This must be in the Authorization header of the API request. For example: Authorization:AnaplanAuthToken {anaplan_auth_token} Where {anaplan_auth_token} is replaced with your auth token.
+
+    The Authentication Service API enables you to:
+
+    - Create an auth token
+    - Get the details of an existing {anaplan_auth_token}
+    - Refresh an auth token by generating a new one from the existing {anaplan_auth_token} you provide
+servers:
+  - url: 'https://auth.anaplan.com'
+    description: Authentication API Server
+  - url: 'http://localhost:8585'
+    description: Mock Server
+paths:
+  /token/authenticate:
+    post:
+      operationId: tokenAuthenticate
+      responses:
+        '200':
+          $ref: '#/components/responses/TokenResponse'
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Authorization
+          description: 'Basic encoded_username:password (this must be Base64 encoded.) OR CACertificate {your_CA_certificate}'
+      requestBody:
+        $ref: '#/components/requestBodies/TokenRequest'
+        description: Request body sent when the Authorization header contains a certificate
+      summary: Token Authenticate
+      tags:
+        - auth
+      description: |
+        **Create an Auth Token with a username and password**
+
+        - To use the version 2.0 API, you must use an Anaplan auth token generated from the Anaplan Authentication Service.
+        - You can get an auth token generated using a certificate from a recognized external public certificate authority (CA) or with your login and password.
+        - Then use the auth token in your API requests.
+        - Note: If your workspace uses single sign-on (SSO), you must be assigned as an Exception User to use basic auth and obtain an Anaplan auth token. For more information on exception users in Anaplan, see [Assign Exception Users](https://help.anaplan.com/anapedia/Content/Administration_and_Security/Security/Single_Sign-on/Enforcing_SAML_Authentication.html) in Anapedia.
+
+        **Create an auth token using a username and password**
+
+        - Use your Anaplan username and password to generate an auth token.
+        - Then use this auth token in your API requests.
+
+        **Note**: If your workspace uses single sign-on (SSO), your user must be assigned as an Exception User to use basic auth and obtain an Anaplan auth token. For more information on exception users in Anaplan, see [Assign Exception Users](https://help.anaplan.com/anapedia/Content/Administration_and_Security/Security/Single_Sign-on/Enforcing_SAML_Authentication.html) in Anapedia.
+
+        **Create an auth token using Certificate Authentication**
+
+        To create an AnaplanAuthToken:
+
+        1. Use a Certificate Authority (CA) issued X509 certificate to generate an auth token.
+        2. Use this auth token in your API requests.
+        3. In the header, replace {your_CA_certificate} with the base64-encoded certificate in PEM format.
+        4. Replace {encoded_string} with a base-64 encoded randomly generated string (of at least 100 bytes).
+        5. Replace {encoded_signed_string} with the previous string signed by your private key and then base-64 encoded. Note: We currently only support the SHA512withRSA algorithm when you sign with your private key.
+
+        See the code sample below for more details on generating random encoded strings.
+        For more information on CA certificates, see [Tenant Administration: Certificates](https://help.anaplan.com/anapedia/Content/Administration_and_Security/Tenant_Administration/Security/Certificates.htm) in Anapedia.
+  /token/validate:
+    post:
+      operationId: tokenValidate
+      responses:
+        '200':
+          $ref: '#/components/responses/TokenResponse'
+        '401':
+          description: Unauthorized
+      summary: Token Validate
+      tags:
+        - auth
+      description: |
+        Gets information on a provided {anaplan_auth_token}. If the token is valid, returns the details of the {anaplan_auth_token}. If the token is invalid, returns a 401 Unauthorized message.
+  /token/logout:
+    post:
+      operationId: tokenLogout
+      responses:
+        '204':
+          description: No Content
+      summary: Token Logout
+      tags:
+        - auth
+      description: |
+        Deletes an {anaplan_auth_token}. After the /logout command, the {anaplan_auth_token} is deleted and no longer valid.
+  /token/refresh:
+    post:
+      summary: Token Refresh
+      responses:
+        '200':
+          $ref: '#/components/responses/TokenResponse'
+      operationId: tokenRefresh
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Authorization
+          description: 'AnaplanAuthToken {anaplan_auth_token}'
+      tags:
+        - auth
+      description: |
+        Generates a new auth token from an existing {anaplan_auth_token} that you provide. You need to refresh your token if your session runs for longer than 30 minutes.
+components:
+  requestBodies:
+    TokenRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TokenRequestBodyForCertificate'
+          examples:
+            TokenRequestBodyForCertificate:
+              summary: The Body for a Certificate authenticate request
+              value:
+                encodedData: '{encoded_string}'
+                encodedSignedData: '{encoded_signed_string}'
+            TokenRequestBodyForCertificateV2:
+              summary: The Body for a Certificate authenticate request V2 - encoded data includes timestamp
+              value:
+                encodedDataFormat: v2
+                encodedData: '{timestamp}-{encoded_string}'
+                encodedSignedData: '{encoded_signed_string}'
+  responses:
+    TokenResponse:
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TokenResponse'
+          examples:
+            CreateTokenResponse:
+              summary: A response returned from a /token/authenticate call
+              value:
+                meta:
+                  validationUrl: 'https://auth.anaplan.com/token/validate'
+                status: SUCCESS
+                statusMessage: Login successful
+                tokenInfo:
+                  expiresAt: 1493036651173
+                  tokenId: 9aa99999-1111-11a2-b333-abc11223ab12
+                  tokenValue: aBCDdefghilMnz30PrD8Iw==.twOZw6fT+ttckbx5Ap3TRvjAAgqHY4UrgkRLiyvQppI8ULyPCc59GNimzco4pBXaMM8wEJ1yrJE6C4Vd6GflfjdUVhGpaji4oG+NBzVnBvA+bBfFnmwWsOiL/8kge+cFxqbW+XqLAAHz3aRV6WgB7wYGXP/0AYant1VKAHFLcnSzRtJqeKakW+rnbUf6eHDQWsF/7AhfG7PJ6qDS8zm8JMjWSZdb0WsOzr79A/IcL1tu4iyn2n9gKA6l9cOhPhYT3AEQJE4GCtLA9eEYILBTbKC4LWuxgnmo+G8VkAIsBoAy8dcSRBPXHZMKRZ5ssmpO766zOZqpdkcX0RcH2dwKUqZefwNrfhdoKy5rmi54/LU93YVYv/d/Mm8HyfV9sWkfEKvFHGM1v+PmCQJLh/CQvHtdu5fd6Had4L0arKa574XsUb07mwKau53Xn+iBBcDu.0CpRsu37FpDizsfXVCxOQ7iLBjJM6+72hczGl4+3RQ4=
+                  refreshTokenId: 3ab11111-2222-33e4-a111-01a1b222cd3a
+            ValidateResponse:
+              summary: A response returned from a /token/validate call
+              value:
+                meta:
+                  validationUrl: 'https://auth.anaplan.com/token/validate'
+                status: SUCCESS
+                statusMessage: Token validated
+                userInfo:
+                  userGuid: 8a89d9999f3c7099015f999d5208458a
+                  userId: a.user@anaplan.com
+                  customerGuid: 8a80d99a5bf97b99995c3d1577610415
+                tokenInfo:
+                  expiresAt: 1509728252000
+                  tokenId: 4d677e7d-c0ae-11e7-9f79-b179910b5099
+            RefreshResponse:
+              summary: A response returned from a /token/refresh call
+              value:
+                meta:
+                  validationUrl: 'https://auth.anaplan.com/token/validate '
+                status: SUCCESS
+                statusMessage: Token refreshed
+                tokenInfo:
+                  expiresAt: 1509725972924
+                  tokenId: 4d688e7d-c0ae-11e7-9f69-b170010b5016
+                  tokenValue: wOlfU2tLezUAkmLY/C5lXw==.CH9fWgnDiN099USFFAWrrtoCoqVS/xixNtG4V0Vk6f2zVAa/lTmjJsHeSxSXAW9HRH2EA+q7rLzmtWvkdi8dtOv/hExmpNRfTtux/9t8RXVFmNMxro+tPbhfE/MUPSiaxzyRlSYkpph8WFIWKlrLhZ0Iw/iweuSIlAwVtXhbsDt674T5GiJxS35wh1h5ateeylU/1Y3Het+YR5F/8idr1oZu5cd+SE16tHLUPJQwp5uGkfTTBp5CR/zv4wzIsY35wGpgEAgUC4F19zASo6/EB6Br2KmyqJEmUIWmFJRRk9qmjJpS05FHUTXVpU5d2psrRRGUh1XNLoOOnz7DopuhTS4TwiI3AJeNYca3IfeGQo7LyfAmsTc4QL6xsQh5M6G5q/+wfNFY1zHVxSf/nugfHJOBRUnLMUgs46/TMWTqhMoweFsMG84uI0eHA3SAAiFQ.63GpdlW8HpciJq24dr4klBCog1TEIkTj6NBS+iPM4uY=
+                  refreshTokenId: 95ee4c30-c0ae-11e7-be10-c9ac36e86de2
+  schemas:
+    Meta:
+      type: object
+      properties:
+        validationUrl:
+          type: string
+      x-examples:
+        Example 1:
+          validationUrl: 'https://auth.anaplan.com/token/validate'
+    TokenInfo:
+      type: object
+      properties:
+        expiresAt:
+          type: integer
+        tokenId:
+          type: string
+        tokenValue:
+          type: string
+        refreshTokenId:
+          type: string
+    UserInfo:
+      type: object
+      properties:
+        userGuid:
+          type: string
+        userId:
+          type: string
+        customerGuid:
+          type: string
+    TokenRequestBodyForCertificate:
+      type: object
+      properties:
+        encodedDataFormat:
+          type:
+            - string
+            - 'null'
+          default: v1
+          enum:
+            - v1
+            - v2
+          description: Describes the format of the encoded data - v2 will include a prefix timestamp
+        encodedData:
+          type: string
+        encodedSignedData:
+          type: string
+    TokenResponse:
+      type: object
+      properties:
+        meta:
+          $ref: '#/components/schemas/Meta'
+        status:
+          type: string
+        statusMessage:
+          type: string
+        tokenInfo:
+          $ref: '#/components/schemas/TokenInfo'
+        userInfo:
+          $ref: '#/components/schemas/UserInfo'
+tags:
+  - name: auth
+    description: Auth Service
+x-topics:
+  - title: Getting Started
+    content:
+      $ref: ../docs/getting-started.md
+

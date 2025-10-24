@@ -1,0 +1,2422 @@
+openapi: 3.1.0
+info:
+  title: Anaplan Transactional API
+  version: '2.0'
+  description: Transactional integration API documentation
+  contact:
+    email: openapi@anaplan.com
+servers:
+  - url: 'https://api.anaplan.com/2/0'
+    description: Anaplan API server
+tags:
+  - name: Workspaces
+    description: Workspaces
+  - name: Models
+    description: Models
+  - name: Line Items
+    description: Line Items
+  - name: Other Model Metadata
+    description: Other Model Metadata
+  - name: 'Read module, view metadata and limited volume cell data'
+    description: 'Read module, view metadata and limited volume cell data'
+  - name: Read large volume view data
+    description: Read large volume view data
+  - name: Update module cell data
+    description: Update module cell data
+  - name: Model lists
+    description: Model lists
+  - name: Read large volume list item data
+    description: Read large volume list item data
+  - name: Model Calendar
+  - name: Model Versions
+  - name: Users
+paths:
+  # Workspaces
+  # https://anaplan.docs.apiary.io/#/introduction/transactional-api-index
+  /workspaces:
+    get:
+      summary: List user workspaces
+      description: Retrieves all workspaces a user has access to within the user's default tenant
+      tags:
+        - Workspaces
+      parameters:
+        - name: tenantDetails
+          in: query
+          description: 'When true, returns workspace size details'
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  workspaces:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Workspace'
+      security:
+        - AnaplanAuthToken: []
+      operationId: listUserWorkspaces
+  '/workspaces/{workspaceId}':
+    get:
+      summary: Retrieve workspace information
+      description: Retrieves information on a specific workspace
+      tags:
+        - Workspaces
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - name: tenantDetails
+          in: query
+          description: 'When true, returns workspace size details'
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  workspace:
+                    $ref: '#/components/schemas/Workspace'
+      security:
+        - AnaplanAuthToken: []
+      operationId: retrieveWorkspaceInfo
+  # Models
+  /models:
+    get:
+      summary: Retrieve models
+      description: Retrieves information about all models in the user's default tenant
+      tags:
+        - Models
+      parameters:
+        - name: modelDetails
+          in: query
+          description: 'When true, returns model memory usage'
+          schema:
+            type: boolean
+        - name: s
+          in: query
+          description: Search pattern for models
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: Starting point for results
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: Number of results to return
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  models:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Model'
+      security:
+        - AnaplanAuthToken: []
+      operationId: retrieveModels
+  '/workspaces/{workspaceId}/models':
+    get:
+      summary: Retrieve models for a specific workspace
+      description: Retrieves information about all models in the specified workspace
+      tags:
+        - Models
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - name: modelDetails
+          in: query
+          description: 'When true, returns model memory usage'
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  models:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Model'
+      security:
+        - AnaplanAuthToken: []
+      operationId: retrieveModelsForWorkspace
+  '/models/{modelId}':
+    get:
+      summary: Retrieve a specific model
+      description: Retrieves information about a specific model
+      tags:
+        - Models
+      parameters:
+        - $ref: '#/components/parameters/modelId'
+        - name: modelDetails
+          in: query
+          description: 'When true, returns model memory usage'
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  model:
+                    $ref: '#/components/schemas/Model'
+      security:
+        - AnaplanAuthToken: []
+      operationId: retrieveSpecificModel
+  '/workspaces/{workspaceId}/bulkDeleteModels':
+    post:
+      summary: Bulk delete models
+      description: Delete one or more models in a workspace
+      tags:
+        - Models
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+      requestBody:
+        description: Model IDs to delete
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                modelIdsToDelete:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  items:
+                    type: object
+                    properties:
+                      modelsDeleted:
+                        type: integer
+                      bulkDeleteModelsFailures:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            modelId:
+                              type: string
+                            message:
+                              type: string
+      security:
+        - AnaplanAuthToken: []
+      operationId: bulkDeleteModels
+  '/workspaces/{workspaceId}/models/{modelId}/status':
+    post:
+      summary: Check model status
+      description: Check status of a model
+      tags:
+        - Models
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  items:
+                    type: object
+                    properties:
+                      requestStatus:
+                        type: object
+                        properties:
+                          exportTaskType:
+                            type: string
+                          taskId:
+                            type: string
+                          currentStep:
+                            type: string
+                          tooltip:
+                            type: string
+                          progress:
+                            type: number
+      security:
+        - AnaplanAuthToken: []
+      operationId: checkModelStatus
+  '/workspaces/{workspaceId}/models/{modelId}/close':
+    get:
+      summary: Close model
+      description: Close a model
+      tags:
+        - Models
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+      responses:
+        '200':
+          description: Successful response
+        '204':
+          description: No content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+        '422':
+          description: Unprocessable entity
+      security:
+        - AnaplanAuthToken: []
+      operationId: closeModel
+  '/workspaces/{workspaceId}/models/{modelId}/open':
+    post:
+      summary: Wake up a model
+      description: Wake up a model
+      tags:
+        - Models
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+      responses:
+        '200':
+          description: OK
+        '202':
+          description: Accepted
+        '404':
+          description: Not found
+        '422':
+          description: Unprocessable content
+        '424':
+          description: Failed dependency
+      security:
+        - AnaplanAuthToken: []
+      operationId: wakeUpModel
+  # Line Items
+  '/models/{modelId}/lineItems':
+    get:
+      summary: Retrieve all line item metadata in a model
+      description: Returns all line items and metadata for a model
+      operationId: listLineItems
+      tags:
+        - Line Items
+      parameters:
+        - $ref: '#/components/parameters/modelId'
+        - name: includeAll
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  items:
+                    oneOf:
+                      - type: array
+                        items:
+                          $ref: '#/components/schemas/LineItemId'
+                      - type: array
+                        items:
+                          $ref: '#/components/schemas/LineItem'
+      security:
+        - AnaplanAuthToken: []
+  '/models/{modelId}/lineItems/{lineItemId}/dimensions':
+    get:
+      summary: Retrieve dimension IDs for a line item
+      description: Returns IDs of dimensions that define a line item
+      operationId: listDimensions
+      tags:
+        - Line Items
+      parameters:
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/lineItemId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  dimensions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+      security:
+        - AnaplanAuthToken: []
+  '/models/{modelId}/modules/{moduleId}/lineItems':
+    get:
+      summary: Retrieve all line item metadata in a module
+      description: Returns all line items and metadata in a module
+      operationId: listModuleLineItems
+      tags:
+        - Line Items
+      parameters:
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/moduleId'
+        - name: includeAll
+          in: query
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  items:
+                    type: array
+                    items:
+                      oneOf:
+                        - $ref: '#/components/schemas/LineItemId'
+                        - $ref: '#/components/schemas/LineItem'
+      security:
+        - AnaplanAuthToken: []
+      # Other Model Metadata
+  '/workspaces/{workspaceId}/models/{modelId}/dimensions/{dimensionId}/items':
+    post:
+      summary: Lookup dimension items by name or code
+      description: Retrieves items from a dimension that match names or codes
+      operationId: listModelDimensionItems
+      tags:
+        - Other Model Metadata
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/dimensionId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                names:
+                  type: array
+                  items:
+                    type: string
+                codes:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      schema:
+                        type: string
+                  status:
+                    type: object
+                    properties:
+                      code:
+                        type: integer
+                      message:
+                        type: string
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        id:
+                          type: string
+                        code:
+                          type: string
+      security:
+        - AnaplanAuthToken: []
+  '/models/{modelId}/dimensions/{dimensionId}/items':
+    get:
+      summary: Retrieve all items in a dimension
+      description: 'Returns IDs, codes, and names for items in a specified dimension'
+      operationId: listDimensionsItems
+      tags:
+        - Other Model Metadata
+      parameters:
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/dimensionId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        id:
+                          type: string
+                        name:
+                          type: string
+      security:
+        - AnaplanAuthToken: []
+  '/models/{modelId}/views/{viewId}/dimensions/{dimensionId}/items':
+    get:
+      summary: Retrieve selected items in a dimension
+      description: 'Returns selected IDs, codes, and names for items in a specified dimension'
+      operationId: listViewDimensionsItems
+      tags:
+        - Other Model Metadata
+      parameters:
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/viewId'
+        - $ref: '#/components/parameters/dimensionId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+      security:
+        - AnaplanAuthToken: []
+      # Read module, view metadata and limited volume cell data
+  '/models/{modelId}/modules':
+    get:
+      description: Retrieve IDs and names for all modules in a model
+      operationId: listModuleIds
+      tags:
+        - 'Read module, view metadata and limited volume cell data'
+      parameters:
+        - $ref: '#/components/parameters/modelId'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  modules:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+      security:
+        - AnaplanAuthToken: []
+  '/models/{modelId}/views':
+    get:
+      description: Retrieve IDs and names for all views in a model
+      operationId: listViewIds
+      tags:
+        - 'Read module, view metadata and limited volume cell data'
+      parameters:
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/includesubsidiaryviews'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  views:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        moduleId:
+                          type: string
+      security:
+        - AnaplanAuthToken: []
+  '/models/{modelId}/modules/{moduleId}/views':
+    get:
+      description: Retrieve IDs and names for views in a module
+      operationId: listModuleViewIds
+      tags:
+        - 'Read module, view metadata and limited volume cell data'
+      parameters:
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/moduleId'
+        - $ref: '#/components/parameters/includesubsidiaryviews'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  views:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        moduleId:
+                          type: string
+      security:
+        - AnaplanAuthToken: []
+  '/models/{modelId}/views/{viewId}':
+    get:
+      description: Retrieve metadata for dimensions on a view
+      operationId: listViewMetadata
+      tags:
+        - 'Read module, view metadata and limited volume cell data'
+      parameters:
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/viewId'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  viewName:
+                    type: string
+                  viewId:
+                    type: string
+                  rows:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                  columns:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                  pages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+      security:
+        - AnaplanAuthToken: []
+  '/models/{modelId}/views/{viewId}/data':
+    get:
+      description: Retrieve cell data for a view
+      operationId: getViewData
+      tags:
+        - 'Read module, view metadata and limited volume cell data'
+      parameters:
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/viewId'
+        - name: pages
+          in: query
+          description: Page selectors
+          schema:
+            type: string
+        - name: format
+          in: query
+          description: Response format
+          schema:
+            type: string
+        - name: exportType
+          in: query
+          description: Export layout
+          schema:
+            type: string
+        - name: moduleId
+          in: query
+          description: Module ID
+          schema:
+            type: string
+        - name: maxRows
+          in: query
+          description: Limits the number of exported rows
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CellData'
+              example:
+                pages:
+                  - Value
+                  - 23mm
+                columnCoordinates:
+                  - - Jan 13
+                  - - Feb 13
+                  - - Mar 13
+                  - - Q1 FY13
+                  - - Apr 13
+                  - - May 13
+                  - - Jun 13
+                  - - Q2 FY13
+                  - - H1 FY13
+                  - - Jul 13
+                  - - Aug 13
+                  - - Sep 13
+                  - - Q3 FY13
+                  - - Oct 13
+                  - - Nov 13
+                  - - Dec 13
+                  - - Q4 FY13
+                  - - H2 FY13
+                  - - FY13
+                rows:
+                  - rowCoordinates:
+                      - Durham
+                    cells:
+                      - '64.6'
+                      - '57.94'
+                      - '108.36'
+                      - '230.97'
+                      - '173.46'
+                      - '321.17'
+                      - '398.7'
+                      - '893.43'
+                      - '1124.3'
+                      - '433.05'
+                      - '435.52'
+                      - '421.46'
+                      - '1290.03'
+                      - '300.11'
+                      - '150.53'
+                      - '70.23'
+                      - '520.87'
+                      - '1810.9'
+                      - '2935.3'
+                  - rowCoordinates:
+                      - Newcastle upon Tyne
+                    cells:
+                      - '96.33'
+                      - '92.69'
+                      - '136.24'
+                      - '325.27'
+                      - '234.81'
+                      - '468.96'
+                      - '489.6'
+                      - '1193.38'
+                      - '1518.65'
+                      - '535.86'
+                      - '531.8'
+                      - '542.6'
+                      - '1610.25'
+                      - '346.22'
+                      - '171.65'
+                      - '84.72'
+                      - '602.6'
+                      - '2212.85'
+                      - '3731.5'
+                  - rowCoordinates:
+                      - Sunderland
+                    cells:
+                      - '57.06'
+                      - '63.73'
+                      - '56.33'
+                      - '177.13'
+                      - '124.52'
+                      - '236.29'
+                      - '286.86'
+                      - '647.67'
+                      - '824.8'
+                      - '301.15'
+                      - '302.13'
+                      - '299.61'
+                      - '902.9'
+                      - '145.01'
+                      - '115.58'
+                      - '65.05'
+                      - '325.65'
+                      - '1228.55'
+                      - '2053.35'
+            text/csv:
+              example: |
+                | Yesterday   |            |         |        |        |         |         |         |         |         |         |
+                |             |            | Apples  | Apples | Apples | Bananas | Bananas | Bananas | Carrots | Carrots | Carrots |
+                |             |            | English | French | German | English | French  | German  | English | French  | German  |
+                | Line item 1 | Baguette   | 1       | 2      | 3      | 5       | 6       | 7       | 9       | 10      | 11      |
+                | Line item 1 | Large loaf | 12      | 13     | 14     | 15      | 16      | 17      | 18      | 19      | 20      |
+                | Line item 1 | Small loaf | 0       | 0      | 0      | 0       | 0       | 0       | 0       | 0       | 0       |
+                | Line item 2 | Baguette   | 0       | 0      | 0      | 0       | 0       | 0       | 0       | 0       | 0       |
+                | Line item 2 | Large loaf | 0       | 0      | 0      | 0       | 0       | 0       | 0       | 0       | 0       |
+                | Line item 2 | Small loaf | 0       | 0      | 0      | 0       | 0       | 0       | 0       | 0       | 0       |
+      security:
+        - AnaplanAuthToken: []
+    post:
+      description: Write cell data to module
+      operationId: writeViewData
+      tags:
+        - 'Read module, view metadata and limited volume cell data'
+      parameters:
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/viewId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CellWrite'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WriteCellDataResponseBody'
+      security:
+        - AnaplanAuthToken: []
+  '/models/{modelId}/lineItems/{lineItemId}/dimensions/{dimensionId}/items':
+    get:
+      description: Retrieve dimension items for a line item
+      operationId: listLineItemDimensionItems
+      tags:
+        - 'Read module, view metadata and limited volume cell data'
+      parameters:
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/lineItemId'
+        - $ref: '#/components/parameters/dimensionId'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+      security:
+        - AnaplanAuthToken: []
+      # Read large volume view data
+  '/workspaces/{workspaceId}/models/{modelId}/views/{viewId}/readRequests':
+    post:
+      description: Initiate large read request
+      operationId: initLargeReadRequest
+      tags:
+        - Read large volume view data
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/viewId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                exportType:
+                  $ref: '#/components/schemas/ExportType'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  viewReadRequest:
+                    type: object
+                    properties:
+                      requestId:
+                        type: string
+                      requestState:
+                        type: string
+                      url:
+                        type: string
+      security:
+        - AnaplanAuthToken: []
+  '/workspaces/{workspaceId}/models/{modelId}/views/{viewId}/readRequests/{requestId}':
+    delete:
+      description: Delete read requests
+      operationId: deleteLargeReadRequest
+      tags:
+        - Read large volume view data
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/viewId'
+        - $ref: '#/components/parameters/requestId'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  viewReadRequest:
+                    type: object
+                    properties:
+                      requestId:
+                        type: string
+                      viewId:
+                        type: number
+                      requestState:
+                        type: string
+                      url:
+                        type: string
+                      successful:
+                        type: boolean
+      security:
+        - AnaplanAuthToken: []
+    get:
+      description: Retrieve status of large read request
+      operationId: readLargeReadRequest
+      tags:
+        - Read large volume view data
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/viewId'
+        - $ref: '#/components/parameters/requestId'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  viewReadRequest:
+                    type: object
+                    properties:
+                      requestId:
+                        type: string
+                      viewId:
+                        type: number
+                      requestState:
+                        type: string
+                      url:
+                        type: string
+                      availablePages:
+                        type: integer
+                      successful:
+                        type: boolean
+      security:
+        - AnaplanAuthToken: []
+  '/workspaces/{workspaceId}/models/{modelId}/views/{viewId}/readRequests/{requestId}/pages/{pageNo}':
+    get:
+      description: Download pages
+      operationId: downloadReadRequestPage
+      tags:
+        - Read large volume view data
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/viewId'
+        - $ref: '#/components/parameters/requestId'
+        - $ref: '#/components/parameters/pageNo'
+      responses:
+        '200':
+          description: Success
+          content:
+            text/csv: {}
+      security:
+        - AnaplanAuthToken: []
+      # Update module cell data
+  '/models/{modelId}/modules/{moduleId}/data':
+    post:
+      description: Write cell data by coordinate or name
+      operationId: writeCellData
+      tags:
+        - Update module cell data
+      parameters:
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/moduleId'
+      requestBody:
+        description: An array of `CellWrite` objects. Each object is for an updated individual cell and its full set of dimensions.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CellWrite'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WriteCellDataResponseBody'
+      security:
+        - AnaplanAuthToken: []
+      # Model lists
+  '/workspaces/{workspaceId}/models/{modelId}/lists':
+    get:
+      description: Retrieve lists for a specified workspace and model
+      operationId: listModelLists
+      tags:
+        - Model lists
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  lists:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+      security:
+        - AnaplanAuthToken: []
+  '/workspaces/{workspaceId}/models/{modelId}/lists/{listId}':
+    get:
+      description: Retrieve metadata for a specified list
+      operationId: getListMetadata
+      tags:
+        - Model lists
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/listId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      schema:
+                        type: string
+                  status:
+                    type: object
+                    properties:
+                      code:
+                        type: integer
+                      message:
+                        type: string
+                  metadata:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      properties:
+                        type: array
+                        items:
+                          type: object
+                      hasSelectiveAccess:
+                        type: boolean
+                      parent:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          name:
+                            type: string
+                      managedBy:
+                        type: string
+                      numberOfList:
+                        type: boolean
+                      useTopLevelAsPageDefault:
+                        type: boolean
+                      itemCount:
+                        type: integer
+                      workflowEnabled:
+                        type: boolean
+                      productionData:
+                        type: boolean
+      security:
+        - AnaplanAuthToken: []
+  '/workspaces/{workspaceId}/models/{modelId}/lists/{listId}/items':
+    get:
+      description: Retrieve list data for items in a specified list
+      operationId: listListItems
+      tags:
+        - Model lists
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/listId'
+        - name: includeAll
+          in: query
+          required: false
+          description: Include optional data fields
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      schema:
+                        type: string
+                  status:
+                    type: object
+                    properties:
+                      code:
+                        type: integer
+                      message:
+                        type: string
+                  listItems:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        code:
+                          type: string
+                        parent:
+                          type: string
+                        parentId:
+                          type: string
+                        listId:
+                          type: string
+                        listName:
+                          type: string
+                        subsets:
+                          type: object
+                        properties:
+                          type: object
+      security:
+        - AnaplanAuthToken: []
+    post:
+      description: Add / delete items to a list
+      operationId: addListItem
+      tags:
+        - Model lists
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/listId'
+        - name: action
+          in: query
+          required: true
+          description: Action to perform (add or delete)
+          schema:
+            type: string
+            enum:
+              - add
+              - delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      code:
+                        type: string
+                      parent:
+                        type: string
+                      properties:
+                        type: object
+                      subsets:
+                        type: object
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      schema:
+                        type: string
+                  status:
+                    type: object
+                    properties:
+                      code:
+                        type: integer
+                      message:
+                        type: string
+                  added:
+                    type: integer
+                  ignored:
+                    type: integer
+                  total:
+                    type: integer
+                  failures:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        requestIndex:
+                          type: integer
+                        failureType:
+                          type: string
+                        failureMessageDetails:
+                          type: string
+      security:
+        - AnaplanAuthToken: []
+    put:
+      description: Update items in a list
+      operationId: updateListItems
+      tags:
+        - Model lists
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/listId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      code:
+                        type: string
+                      id:
+                        type: string
+                      parent:
+                        type: string
+                      properties:
+                        type: object
+                      subsets:
+                        type: object
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      schema:
+                        type: string
+                  status:
+                    type: object
+                    properties:
+                      code:
+                        type: integer
+                      message:
+                        type: string
+                  total:
+                    type: integer
+                  updated:
+                    type: integer
+                  ignored:
+                    type: integer
+                  failures:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        requestIndex:
+                          type: integer
+                        failureType:
+                          type: string
+                        failureMessageDetails:
+                          type: string
+      security:
+        - AnaplanAuthToken: []
+  '/models/{modelId}/lists/{listId}/resetIndex':
+    post:
+      description: Reset list index
+      operationId: resetListIndex
+      tags:
+        - Model lists
+      parameters:
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/listId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      schema:
+                        type: string
+                  status:
+                    type: object
+                    properties:
+                      code:
+                        type: integer
+                      message:
+                        type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      code:
+                        type: integer
+                      message:
+                        type: string
+                  path:
+                    type: string
+                  timestamp:
+                    type: string
+      security:
+        - AnaplanAuthToken: []
+      # Read large volume list item data
+  '/workspaces/{workspaceId}/models/{modelId}/lists/{listId}/preview':
+    get:
+      tags:
+        - Read large volume list item data
+      summary: Preview large volume list item data
+      description: 'This endpoint enables you to create an integration that previews the source data before an export. Use this call to get the data preview of the list data, up to 1000 records, before starting the export.'
+      operationId: previewLargeVolumeListItemData
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/listId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            text/csv:
+              schema:
+                type: object
+                properties:
+                  Parent:
+                    type: string
+                  Code:
+                    type: string
+      security:
+        - AnaplanAuthToken: []
+  '/workspaces/{workspaceId}/models/{modelId}/lists/{listId}/readRequests':
+    post:
+      tags:
+        - Read large volume list item data
+      summary: Initiate large volume read request
+      description: Use this call to initiate a large volume read request on a list. This enables you to read data from lists that are larger than a million lines.
+      operationId: initiateLargeReadRequest
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/listId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      schema:
+                        type: string
+                  status:
+                    type: object
+                    properties:
+                      code:
+                        type: integer
+                      message:
+                        type: string
+                  listReadRequest:
+                    type: object
+                    properties:
+                      requestId:
+                        type: string
+                      requestState:
+                        type: string
+                      url:
+                        type: string
+      security:
+        - AnaplanAuthToken: []
+  '/workspaces/{workspaceId}/models/{modelId}/lists/{listId}/readRequests/{requestId}':
+    get:
+      tags:
+        - Read large volume list item data
+      summary: Retrieve status of large read request
+      description: Use this call to check on the status of an export action after a bulk data long request is initiated. This enables you to start the download of the pages from the directory where you download the export file.
+      operationId: retrieveLargeReadRequestStatus
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/listId'
+        - $ref: '#/components/parameters/requestId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      schema:
+                        type: string
+                  status:
+                    type: object
+                    properties:
+                      code:
+                        type: integer
+                      message:
+                        type: string
+                  listReadRequest:
+                    type: object
+                    properties:
+                      requestId:
+                        type: string
+                      listId:
+                        type: integer
+                      requestState:
+                        type: string
+                      url:
+                        type: string
+                      availablePages:
+                        type: integer
+                      successful:
+                        type: boolean
+      security:
+        - AnaplanAuthToken: []
+    delete:
+      tags:
+        - Read large volume list item data
+      summary: Delete read requests
+      description: Use this call to delete or cancel an initiated read request. This removes all the pages from the file store and stops the ongoing read request.
+      operationId: deleteReadRequests
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/listId'
+        - $ref: '#/components/parameters/requestId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      schema:
+                        type: string
+                  status:
+                    type: object
+                    properties:
+                      code:
+                        type: integer
+                      message:
+                        type: string
+                  listReadRequest:
+                    type: object
+                    properties:
+                      requestId:
+                        type: string
+                      listId:
+                        type: integer
+                      requestState:
+                        type: string
+                      url:
+                        type: string
+                      successful:
+                        type: boolean
+      security:
+        - AnaplanAuthToken: []
+  '/workspaces/{workspaceId}/models/{modelId}/lists/{listId}/readRequests/{requestId}/pages/{pageNo}':
+    get:
+      tags:
+        - Read large volume list item data
+      summary: Download pages
+      description: 'Use this call to download the available pages, either when the read request is in progress, or when the request is completed. This request returns a CSV format response of the export list items.'
+      operationId: downloadIntermediateExportFileStore
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/listId'
+        - $ref: '#/components/parameters/requestId'
+        - $ref: '#/components/parameters/pageNo'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            text/csv:
+              schema:
+                type: object
+                properties:
+                  Parent:
+                    type: string
+                  Write:
+                    type: string
+                  Read:
+                    type: string
+                  Code:
+                    type: string
+                  favourite:
+                    type: string
+                  count:
+                    type: string
+      security:
+        - AnaplanAuthToken: []
+      # Model Calendar
+  '/workspaces/{workspaceId}/models/{modelId}/currentPeriod':
+    get:
+      description: Use this call to determine the value of the current period in Anaplan.
+      operationId: getCurrentPeriod
+      tags:
+        - Model Calendar
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  currentPeriod:
+                    type: object
+                    properties:
+                      periodText:
+                        type: string
+                      lastDay:
+                        type: string
+                      calendarType:
+                        type: string
+      security:
+        - AnaplanAuthToken: []
+    put:
+      description: Set the current period in Anaplan
+      operationId: updateCurrentPeriod
+      tags:
+        - Model Calendar
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  description: 'The date to use to set, or reset, the current period.'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  currentPeriod:
+                    type: object
+                    properties:
+                      periodText:
+                        type: string
+                      lastDay:
+                        type: string
+                      calendarType:
+                        type: string
+      security:
+        - AnaplanAuthToken: []
+  '/workspaces/{workspaceId}/models/{modelId}/modelCalendar':
+    get:
+      description: Get current fiscal year
+      operationId: getFiscalYear
+      tags:
+        - Model Calendar
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  modelCalendar:
+                    type: object
+                    properties:
+                      fiscalYear:
+                        type: object
+                        properties:
+                          year:
+                            type: string
+                          startDate:
+                            type: string
+                          endDate:
+                            type: string
+                      pastYearsCount:
+                        type: integer
+                      futureYearsCount:
+                        type: integer
+                      currentPeriod:
+                        type: object
+                        properties:
+                          periodText:
+                            type: string
+                          lastDay:
+                            type: string
+                      totalsSelection:
+                        type: object
+                        properties:
+                          quarterTotals:
+                            type: boolean
+                          halfYearTotals:
+                            type: boolean
+                          yearToDateSummary:
+                            type: boolean
+                          yearToGoSummary:
+                            type: boolean
+                          totalOfAllPeriods:
+                            type: boolean
+      security:
+        - AnaplanAuthToken: []
+  '/workspaces/{workspaceId}/models/{modelId}/modelCalendar/fiscalYear':
+    put:
+      description: Update current fiscal year
+      operationId: updateFiscalYear
+      tags:
+        - Model Calendar
+      parameters:
+        - $ref: '#/components/parameters/workspaceId'
+        - $ref: '#/components/parameters/modelId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                year:
+                  type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  modelCalendar:
+                    type: object
+                    properties:
+                      fiscalYear:
+                        type: object
+                        properties:
+                          year:
+                            type: string
+                          startDate:
+                            type: string
+                          endDate:
+                            type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+      security:
+        - AnaplanAuthToken: []
+      # Model versions
+  '/models/{modelId}/versions':
+    get:
+      description: Retrieve version metadata
+      operationId: getVersionMetadata
+      tags:
+        - Model Versions
+      parameters:
+        - $ref: '#/components/parameters/modelId'
+      responses:
+        '200':
+          description: A list of version metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  VersionMetadata:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        isCurrent:
+                          type: boolean
+                        isActual:
+                          type: boolean
+                        editFrom:
+                          type: object
+                          properties:
+                            periodText:
+                              type: string
+                            date:
+                              type: string
+                        editTo:
+                          type: object
+                          properties:
+                            periodText:
+                              type: string
+                            date:
+                              type: string
+                        notes:
+                          type: string
+      security:
+        - AnaplanAuthToken: []
+  '/models/{modelId}/versions/{versionId}/switchover':
+    put:
+      description: Set version switchover date
+      operationId: setVersionSwitchoverDate
+      tags:
+        - Model Versions
+      parameters:
+        - $ref: '#/components/parameters/modelId'
+        - $ref: '#/components/parameters/versionId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  description: The date to set as the switchover date for the version.
+      responses:
+        '200':
+          description: The updated switchover date
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  versionSwitchover:
+                    type: object
+                    properties:
+                      periodText:
+                        type: string
+                      date:
+                        type: string
+                      calendarType:
+                        type: string
+      security:
+        - AnaplanAuthToken: []
+      # Users
+  /users/me:
+    get:
+      description: Retrieve your user
+      operationId: getYourUser
+      tags:
+        - Users
+      responses:
+        '200':
+          description: Your user information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  user:
+                    $ref: '#/components/schemas/User'
+  '/users/{userId}':
+    get:
+      description: Retrieve user information
+      operationId: getUserInformation
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The user ID
+      responses:
+        '200':
+          description: The user information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  user:
+                    $ref: '#/components/schemas/User'
+  /users:
+    get:
+      description: Retrieve user list
+      operationId: getUserList
+      tags:
+        - Users
+      parameters:
+        - name: s
+          in: query
+          description: Search criteria
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+components:
+  parameters:
+    dimensionId:
+      name: dimensionId
+      in: path
+      description: |
+        The dimension ID. This value must be the ID for any of these dimension types:
+        - Lists
+        - Time periods
+        - Users
+        - Versions
+      required: true
+      schema:
+        type: integer
+        example: 101000000001
+    includesubsidiaryviews:
+      name: includesubsidiaryviews
+      in: query
+      description: Include unsaved subsidiary views
+      schema:
+        type: string
+    lineItemId:
+      name: lineItemId
+      in: path
+      description: The line item ID
+      required: true
+      schema:
+        type: integer
+        example: 208000000000
+    listId:
+      name: listId
+      in: path
+      required: true
+      description: The list ID
+      schema:
+        type: string
+        example: '101000000001'
+    moduleId:
+      name: moduleId
+      in: path
+      description: The ID for the module
+      required: true
+      schema:
+        type: integer
+        example: 102000000028
+    modelId:
+      name: modelId
+      in: path
+      description: The model ID
+      required: true
+      schema:
+        type: string
+        example: 75A40874E6B64FA3AE074327899685
+    pageNo:
+      name: pageNo
+      in: path
+      description: The page number (starting from 0)
+      required: true
+      schema:
+        type: integer
+        example: 0
+    requestId:
+      name: requestId
+      in: path
+      description: The request ID
+      required: true
+      schema:
+        type: string
+        example: 0A06B0739F0E47BB92E2326C603D86EC
+    versionId:
+      name: versionId
+      in: path
+      description: The version ID
+      required: true
+      schema:
+        type: string
+        enum:
+          - forecast
+          - variance
+    viewId:
+      name: viewId
+      in: path
+      description: The view ID
+      required: true
+      schema:
+        type: integer
+        example: 102000000000
+    workspaceId:
+      name: workspaceId
+      in: path
+      description: The workspace ID
+      required: true
+      schema:
+        type: string
+        example: 8a8196b15b7dbae6015b8694411d13fe
+  schemas:
+    CellData:
+      type: object
+      properties:
+        pages:
+          type: array
+          items:
+            type: string
+        columnCoordinates:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/CellDataRow'
+    CellDataRow:
+      type: object
+      properties:
+        rowCoordinates:
+          type: array
+          items:
+            type: string
+        cells:
+          type: array
+          items:
+            type: string
+    CellWrite:
+      type: object
+      properties:
+        lineItemId:
+          type: string
+        lineItemName:
+          type: string
+        dimensions:
+          type: array
+          items:
+            type: object
+            properties:
+              dimensionId:
+                type: number
+              dimensionName:
+                type: string
+              itemId:
+                type: string
+              itemName:
+                type: string
+              itemCode:
+                type: string
+        value:
+          type: string
+          description: Cell value
+    ExportType:
+      type: string
+      enum:
+        - GRID_ALL_PAGES
+        - TABULAR_SINGLE_COLUMN
+        - TABULAR_MULTI_COLUMN
+    LineItemId:
+      type: object
+      properties:
+        moduleId:
+          type: string
+        moduleName:
+          type: string
+        id:
+          type: string
+        name:
+          type: string
+    LineItem:
+      type: object
+      properties:
+        moduleId:
+          type: string
+        moduleName:
+          type: string
+        id:
+          type: string
+        name:
+          type: string
+        isSummary:
+          type: boolean
+        startOfSection:
+          type: boolean
+        broughtForward:
+          type: boolean
+        useSwitchover:
+          type: boolean
+        breakback:
+          type: boolean
+        cellCount:
+          type: integer
+        version:
+          type: object
+          properties:
+            name:
+              type: string
+            id:
+              type: string
+        appliesTo:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              id:
+                type: string
+        dataTags:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              id:
+                type: string
+        referencedBy:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              id:
+                type: string
+        parent:
+          type: object
+          properties:
+            name:
+              type: string
+            id:
+              type: string
+        readAccessDriver:
+          type: object
+          properties:
+            name:
+              type: string
+            id:
+              type: string
+        writeAccessDriver:
+          type: object
+          properties:
+            name:
+              type: string
+            id:
+              type: string
+        formula:
+          type: string
+        format:
+          type: string
+        formatMetadata:
+          type: object
+          properties:
+            dataType:
+              type: string
+            minimumSignificantDigits:
+              type: integer
+            decimalPlaces:
+              type: integer
+            negativeNumberNotation:
+              type: string
+            unitsType:
+              type: string
+            unitsDisplayType:
+              type: string
+            zeroFormat:
+              type: string
+            comparisonIncrease:
+              type: string
+            groupingSeparator:
+              type: string
+            decimalSeparator:
+              type: string
+        summary:
+          type: string
+        timeScale:
+          type: string
+        timeRange:
+          type: string
+        formulaScope:
+          type: string
+        style:
+          type: string
+        code:
+          type: string
+        notes:
+          type: string
+    Meta:
+      type: object
+      properties:
+        schema:
+          type: string
+        paging:
+          $ref: '#/components/schemas/Paging'
+    Model:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        activeState:
+          type: string
+        lastSavedSerialNumber:
+          type: integer
+        modelTransactionRunning:
+          type: boolean
+        lastModifiedByUserGuid:
+          type: string
+        memoryUsage:
+          type: integer
+        currentWorkspaceId:
+          type: string
+        currentWorkspaceName:
+          type: string
+        modelUrl:
+          type: string
+        categoryValues:
+          type: array
+          items:
+            type: string
+        isoCreationDate:
+          type: string
+        lastModified:
+          type: string
+    Paging:
+      type: object
+      properties:
+        currentPageSize:
+          type: integer
+        offset:
+          type: integer
+        totalSize:
+          type: integer
+    Status:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        active:
+          type: boolean
+        email:
+          type: string
+        emailOptIn:
+          type: boolean
+        firstName:
+          type: string
+        lastName:
+          type: string
+        customerId:
+          type: string
+        lastLoginDate:
+          type: string
+      required:
+        - id
+        - active
+        - email
+        - emailOptIn
+        - firstName
+        - lastName
+    Workspace:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        active:
+          type: boolean
+        sizeAllowance:
+          type: integer
+        currentSize:
+          type: integer
+    WriteCellDataResponseBody:
+      type: object
+      properties:
+        meta:
+          $ref: '#/components/schemas/Meta'
+        status:
+          $ref: '#/components/schemas/Status'
+        numberOfCellsChanged:
+          type: integer
+        failures:
+          type: array
+          items:
+            type: object
+            properties:
+              requestIndex:
+                type: integer
+              failureType:
+                type: string
+              failureMessageDetails:
+                type: string
+  securitySchemes:
+    AnaplanAuthToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Anaplan Auth Token
+x-topics:
+  - title: Getting Started
+    content:
+      $ref: ../docs/getting-started.md
+  - title: Open Authorization (OAuth)
+    content:
+      $ref: ../docs/oauth.md
+
