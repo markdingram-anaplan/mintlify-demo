@@ -2412,11 +2412,3 @@ components:
       in: header
       name: Authorization
       description: Anaplan Auth Token
-x-topics:
-  - title: Getting Started
-    content:
-      $ref: ../docs/getting-started.md
-  - title: Open Authorization (OAuth)
-    content:
-      $ref: ../docs/oauth.md
-

@@ -232,8 +232,5 @@ components:
 tags:
   - name: auth
     description: Auth Service
-x-topics:
-  - title: Getting Started
-    content:
-      $ref: ../docs/getting-started.md
+
 
