@@ -59,13 +59,13 @@
           {
             "group": "Authentication",
             "openapi": {
-              "source": "api-reference/authentication.yaml"
+              "source": "/authentication.yaml"
             }
           },
           {
             "group": "Transactional",
             "openapi": {
-              "source": "api-reference/transactional.yaml"
+              "source": "/transactional.yaml"
             }
           }
         ]
